@@ -1,0 +1,15 @@
+{
+  "name": "cr-image",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "MIT",
+  "dependencies": {
+    "ffmpeg-extract-frames": "^2.0.2",
+    "jpeg-js": "^0.3.4",
+    "pixelmatch": "^4.0.2",
+    "pngjs": "^3.4.0"
+  },
+  "devDependencies": {
+    "@types/node": "^11.11.3"
+  }
+}
