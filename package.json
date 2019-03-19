@@ -7,7 +7,8 @@
     "ffmpeg-extract-frames": "^2.0.2",
     "jpeg-js": "^0.3.4",
     "pixelmatch": "^4.0.2",
-    "pngjs": "^3.4.0"
+    "pngjs": "^3.4.0",
+    "rxjs": "^6.4.0"
   },
   "devDependencies": {
     "@types/node": "^11.11.3"

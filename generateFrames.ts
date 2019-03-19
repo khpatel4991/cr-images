@@ -10,6 +10,7 @@ import {
 } from "fs";
 import * as jpegjs from "jpeg-js";
 import * as pngjs from "pngjs";
+import { Writable } from "stream";
 
 process.stdin.setEncoding("utf-8");
 
@@ -38,13 +39,11 @@ const generateFrames = async (
       (timemark, i) =>
         `/home/kashyap/dev/cr-image/media/frames/clip-${i + 1}-${timemark}.jpg`
     );
-    console.time(`${start}ms => ${end}ms`);
     await extractFrames({
       input: "./media/clip.mp4",
       output: "./media/frames/clip-%i-%s.jpg",
       offsets
     });
-    console.timeEnd(`${start}ms => ${end}ms`);
     return paths;
   } catch (e) {
     return [];
@@ -53,7 +52,7 @@ const generateFrames = async (
 
 const main = async () => {
   const start = 3400; // milliseconds
-  const frames = 300;
+  const frames = 10;
   const hz = 16;
   const end = frames * hz + start;
   console.log(
@@ -61,13 +60,14 @@ const main = async () => {
       end / 1000
     ).toPrecision()}s`
   );
+  console.time(`Generated ${start}ms => ${end}ms`);
   const paths = await generateFrames(start, frames, hz);
-  console.log(`Generated ${paths.length} frames.`);
+  console.timeEnd(`Generated ${start}ms => ${end}ms`);
   if (paths.length === 0) {
     process.exit(1);
   }
   const pairs = paths.slice(1).map((p, i) => [paths[i], p]);
-  pairs.forEach(([path1, path2], i) => {
+  const diffs = pairs.map(([path1, path2], i) => {
     const jpgData1 = readFileSync(path1);
     const jpgData2 = readFileSync(path2);
     const imageData1: Uint8Array = jpegjs.decode(jpgData1).data;
@@ -76,13 +76,16 @@ const main = async () => {
     pixelmatch(imageData1, imageData2, diff.data, 720, 1480, {
       threshold: 0.1
     });
-    diff
-      .pack()
-      .pipe(
-        createWriteStream(
-          `/home/kashyap/dev/cr-image/media/diffs/diff-${i}.png`
-        )
-      );
+    return diff.pack();
+  });
+  const streams = diffs.map((diff, i) =>
+    createWriteStream(
+      `/home/kashyap/dev/cr-image/media/diffs/diff-${i + 1}.png`
+    )
+  );
+  diffs.forEach((diff, i) => {
+    const stream = streams[i];
+    diff.pipe(stream);
   });
 };
 
